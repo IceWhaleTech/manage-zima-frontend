@@ -1,0 +1,33 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-size: 14px;
+  --color-hight: #000;
+  --color-medium: #333;
+  --color-low: #eee;
+}
+
+.font16 {
+  font-size: 16px;
+}
+.font18 {
+  font-size: 18px;
+}
+.font20 {
+  font-size: 20px;
+}
+.font24 {
+  font-size: 24px;
+}
+
+/* 布局相关 */
+.flex{
+  display: flex;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.items-center{
+  align-items: center;
+}
