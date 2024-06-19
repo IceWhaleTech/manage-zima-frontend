@@ -11,10 +11,10 @@
     <div class="table-wrapper" v-loading="table.loading">
       <el-empty v-if="table.data.length==0"></el-empty>
       <ul class="flex">
-        <li v-for="image in table.data">
+        <li v-for="(image,index) in table.data">
           <el-card style="max-width: 480px" body-style="padding:0">
             <div class="card">
-              <el-image :class="{grey:image.status=='0'}" style="height: 160px;" :preview-src-list="srcList" :src="image.src" :fit="'cover'" />
+              <el-image :class="{grey:image.status=='0'}" style="height: 160px;" :preview-src-list="srcList" :initial-index="index" :src="getResizedImage(image.src)" :fit="'cover'" />
               <div class="control">
                 <!-- <el-button type="primary" :icon="'imagePlay'" circle></el-button> -->
                 <el-button type="primary" :icon="'Edit'" circle @click="handleEdit(image)"></el-button>
@@ -61,7 +61,9 @@ onMounted(() => {
   getTableData()
 })
 
-
+const getResizedImage = (src:string)=>{
+  return src.replace('/images/','/images/resized_')
+}
 </script>
 <style lang="scss" scoped>
 .table-wrapper {

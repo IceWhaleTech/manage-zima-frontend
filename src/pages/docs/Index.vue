@@ -26,12 +26,11 @@
 </template>
 <script lang="ts" setup>
 import { useTable } from '@/hooks/useTable';
-import { computed, onMounted, provide } from 'vue';
+import { onMounted } from 'vue';
 // import { useRouter } from 'vue-router';
 // import type { Items } from './types.d'
 const {
   table,
-  getTableData,
   confirmDelete,
 } = useTable<any>({
   baseUrl:'/docs'
@@ -51,6 +50,7 @@ onMounted(() => {
   }]
 })
 const handleAdd = (item:any)=>{
+  console.log(item)
   window.open('/#/docs/editor');
 }
 </script>

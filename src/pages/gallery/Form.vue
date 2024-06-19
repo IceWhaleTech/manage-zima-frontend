@@ -34,7 +34,7 @@
           <el-form-item label="图片" v-if="type == '1'" prop="src">
             <el-upload class="avatar-uploader" action="/api/upload/image" :headers="{Authorization:token}" :show-file-list="false" name="image"
               :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
-              <img v-if="form.src" :src="form.src" style="width: 100%;" />
+              <img v-if="form.src" :src="getResizedImage(form.src)" style="width: 100%;" />
               <el-icon v-else class="avatar-uploader-icon">
                 <Plus />
               </el-icon>
@@ -104,7 +104,9 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   return true
 }
 
-
+const getResizedImage = (src:string)=>{
+  return src.replace('/images/','/images/resized_')
+}
 </script>
 <style lang="scss" scoped>
 .avatar-uploader {

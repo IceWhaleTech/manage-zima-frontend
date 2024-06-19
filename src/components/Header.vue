@@ -1,6 +1,6 @@
 <template>
 <header>
-  <h1>Zimaspace 运营管理平台</h1>
+  <h1>ZimaSpace 运营管理平台</h1>
 </header>
 </template>
 <style lang="scss" scoped>

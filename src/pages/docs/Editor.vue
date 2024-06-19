@@ -3,16 +3,26 @@
     <div class="wrapper">
       <div>
         <h3>这边是markdown编辑器</h3>
+        <MdEditor v-model="text" />
       </div>
       <div>
         这边是预览
       </div>
+      <el-button @click="handleClick">确认</el-button>
     </div> 
     
   </div>
 </template>
 <script setup lang="ts">
 import { ref } from "vue";
+import { MdEditor } from 'md-editor-v3';
+import 'md-editor-v3/lib/style.css';
+
+const text = ref('# Hello Editor');
+
+const handleClick = ()=>{
+  console.log(text.value);
+}
 
 </script>
 <style lang="scss" scoped>
