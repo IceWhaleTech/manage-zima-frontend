@@ -9,6 +9,9 @@
         <el-menu-item index="/home">
           <span>首页</span>
         </el-menu-item>
+        <el-menu-item index="/event">
+          <span>Event</span>
+        </el-menu-item>
         <el-menu-item index="/docs">
           <span>Docs</span>
         </el-menu-item>

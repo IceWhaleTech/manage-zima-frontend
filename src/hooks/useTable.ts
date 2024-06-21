@@ -34,14 +34,18 @@ export function useTable<T>(options: UseTableOptions) {
     }
   })
 
-  const getTableData = ()=>{
+  const getTableData = (callback?:(res:any)=>void)=>{
     table.loading = true;
     request({
       url:url.list,
       method:'get',
       params: table.filter
     }).then((res) => {
-      table.data = res.data
+      if(callback){
+        callback(res.data)
+      }else{
+        table.data = res.data
+      }
     }).finally(()=>{
       table.loading = false;
     })
