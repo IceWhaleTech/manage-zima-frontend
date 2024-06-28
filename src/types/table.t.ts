@@ -11,8 +11,8 @@ export interface ZimaTableForm{
 export interface ZimaTable<T> {
   loading?: boolean;
   filter:{
-    pageNo?:number
-    pageSize?:number
+    pageNo:number
+    pageSize:number
     [key: string]:any
   }
   data:T[]

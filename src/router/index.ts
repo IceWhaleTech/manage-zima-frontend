@@ -8,14 +8,14 @@ const routes = [
     children: [
       { path: '/home', component: Home },
       { path: '/docs', component: ()=> import("../pages/docs/Index.vue")},
+      {
+        path:'/docs/editor',
+        component: ()=> import("../pages/docs/Editor.vue"),
+      },
       { path: '/event', component: ()=> import("../pages/event/Index.vue")},
       { path: '/gallery/images', component: ()=> import("../pages/gallery/Images.vue")},
       { path: '/gallery/videos', component: ()=> import("../pages/gallery/Videos.vue")},
     ],
-  },
-  {
-    path:'/docs/editor',
-    component: ()=> import("../pages/docs/Editor.vue"),
   },
   {
     path:'/login',
