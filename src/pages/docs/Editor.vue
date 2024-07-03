@@ -19,7 +19,7 @@
         </el-form-item>
       </el-form>
       <div v-loading="state.contentLoading">
-        <MdEditor v-model="form.content" @onUploadImg="onUploadImg" />
+        <MdEditor editorId="md-editor" ref="editorRef" v-model="form.content" @onUploadImg="onUploadImg" />
       </div>
       <el-button type="primary" :disabled="state.saveLoading" style="margin-top: 24px;" @click="handleSave(ruleFormRef)">
         <el-icon v-if="state.saveLoading" class="is-loading">
@@ -47,6 +47,7 @@ import { ElMessage } from 'element-plus';
 import { ArrowRight } from '@element-plus/icons-vue';
 import * as imageConversion from 'image-conversion';
 import type { FormInstance } from 'element-plus'
+import TurndownService from 'turndown'
 const state = reactive({
   contentLoading:false,
   saveLoading:false,
@@ -87,40 +88,63 @@ tip: 顶部栏固定格式请勿删除
   form.fileKey = route.query.fileKey as string
   form.fileName = route.query.fileName as string
 }
+
+const editorRef = ref()
+
+var turndownService = new TurndownService()
+// var markdown = turndownService.turndown('<h1>Hello world!</h1>')
 onMounted(()=>{
   if(type == 'edit') getFile(route.query.fileName+'.md')
-  
-  // window.addEventListener('paste', (e:any)=>{
-  //   const clipboardData = e.clipboardData;
-  //   const items = clipboardData.items;
-  //   console.log(clipboardData.getData('text/html'))
-  //   return 
-  //   let blob;
-  //   for (let i = 0; i < items.length; i++) {
-  //     if (items[i].type.startsWith('image/')) {
-  //       blob = items[i].getAsFile();
-  //       break;
-  //     }
-  //   }
-  //   if (blob) {
-  //     const reader = new FileReader();
-  //     reader.onload = (e:any) => {
-  //       const img = new Image();
-  //       img.src = e.target.result as string;
-  //       img.onload = () => {
-  //         imageConversion.convert(img, {
-  //           maxWidth: 1000,
-  //           maxHeight: 600,
-  //           quality: 0.9,
-  //           outputFormat: 'jpeg',
-  //         }).then((buffer: any) => {
-  //           const file = new File([buffer], 'image.jpg', { type: 'image/jpeg' });
-  //         })
-  //       }
-  //     }
-  //   }
-  // })
+  let editor = document.getElementById('md-editor') as any
+  editor.addEventListener('paste', handlePaste)
 })
+
+const handlePaste = async(event: any) =>{
+  state.contentLoading = true
+  const clipboardData = event.clipboardData || event.originalEvent.clipboardData;
+  const htmlData = clipboardData.getData('text/html');
+  const textData = clipboardData.getData('text/plain');
+  let newHtml = htmlData;
+  if (htmlData) {
+      // 创建一个虚拟DOM来解析HTML
+      event.preventDefault();
+      
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlData, 'text/html');
+      const imgTags = doc.getElementsByTagName('img');
+      // 转存图片
+      if (imgTags.length > 0) {
+        for (const img of imgTags) {
+          const imgUrl = img.src;
+          const newUrl = await uploadImage(imgUrl);
+          newHtml = newHtml.replace(imgUrl, newUrl);
+        }
+        var markdown = turndownService.turndown(newHtml)
+        // event.preventDefault() 不生效，进行替换改写;
+        form.content = form.content.replace(textData,'')
+        form.content += markdown
+      }
+      // 转存markdown
+      state.contentLoading = false
+  }
+}
+
+
+async function uploadImage(url:string) {
+  // 通过图片链接获取图片blob
+  const response = await fetch(url);
+  const blob = await response.blob();
+  let contentType = response.headers.get('Content-Type')
+  let fileType = contentType?.split('/')[1]
+  const formdata = new FormData()
+  formdata.append('path','/docs')
+  let file = new File([blob],'copyImage.'+fileType,{ type: fileType})
+  formdata.append('file', file)
+  // 上传图片
+  let { data } = await request.post('/upload/batchImages',formdata)
+  let path = window.location.origin + '/api'
+  return data.map((item:any) =>path + item.filePath)[0];
+}
 
 const getFile = (fileName:string)=>{
   state.contentLoading = true
@@ -176,7 +200,6 @@ const onUploadImg = async (files:any, callback:(urlList:any)=>void) => {
   formdata.append('path','/docs')
   blobList.map((blob:any,index:number)=>{
     let file = new File([blob],files[index].name,{ type: files[index].type})
-    console.log(file)
     formdata.append('file', file)
   })
   // 上传图片

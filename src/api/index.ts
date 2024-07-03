@@ -35,18 +35,16 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
   (response: AxiosResponse):Promise<AxiosResponse> => {
-    console.log(response)
     let status  = response.data.status;
     switch (status) {
       case 200:
         return response.data;
       case 401:
-        ElMessage.error('登录已过期，请重新登录');
+        ElMessage.error('登录已过期，请重新登录!');
         localStorage.removeItem('token');
         window.setTimeout(() => {
           router.push('/login');
         },2000)
-        // const router = useRouter()
         return Promise.reject(response.data);
         default:
           ElMessage.error(response.data.message);

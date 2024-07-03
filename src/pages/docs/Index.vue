@@ -36,7 +36,8 @@ import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import type { Items } from './types.d'
 
-const host = "https://jeremyhann.github.io/"
+// const host = "https://jeremyhann.github.io/"
+const host = "https://docs.zimaboard.com/"
 
 const {
   table,
