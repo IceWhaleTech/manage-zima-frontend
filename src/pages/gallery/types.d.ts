@@ -6,6 +6,8 @@ export interface Items {
   category: string;
   type: string;
   status: string;
+  editing?: boolean;
+  sort: number;
 }
 
 

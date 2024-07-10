@@ -104,8 +104,9 @@ const handlePaste = async(event: any) =>{
   const clipboardData = event.clipboardData || event.originalEvent.clipboardData;
   const htmlData = clipboardData.getData('text/html');
   const textData = clipboardData.getData('text/plain');
+  console.log(textData)
   let newHtml = htmlData;
-  if (htmlData) {
+  if (htmlData && textData) {
       // 创建一个虚拟DOM来解析HTML
       event.preventDefault();
       
@@ -125,8 +126,8 @@ const handlePaste = async(event: any) =>{
         form.content += markdown
       }
       // 转存markdown
-      state.contentLoading = false
-  }
+    }
+    state.contentLoading = false
 }
 
 

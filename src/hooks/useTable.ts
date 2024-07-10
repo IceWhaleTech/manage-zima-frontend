@@ -16,6 +16,8 @@ export function useTable<T>(options: UseTableOptions) {
   const url = {
     list: options.baseUrl + '/list',
     add: options.baseUrl + '/add',
+    edit: options.baseUrl + '/edit',
+    delete: options.baseUrl + '/delete',
   } 
 
 
@@ -85,7 +87,7 @@ export function useTable<T>(options: UseTableOptions) {
   }
 
   const confirmEdit = () => {
-    request.put('/gallery/edit', {
+    request.put(url.edit, {
       ...table.form.items,
     }
     ).then((res: any) => {
@@ -95,7 +97,7 @@ export function useTable<T>(options: UseTableOptions) {
     });
   }
   const confirmDelete = (item: Items) => {
-    request.delete('/gallery/delete/'+item.id).then((res:any) => {
+    request.delete(url.delete+'/'+item.id).then((res:any) => {
       ElMessage.success(res.data.message)
       getTableData()
     });

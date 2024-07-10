@@ -32,8 +32,8 @@
             
           </el-form-item>
           <el-form-item label="图片" v-if="type == '1'" prop="src">
-            <el-upload class="avatar-uploader" action="/api/upload/image" :headers="{Authorization:token}" :show-file-list="false" name="image"
-              :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
+            <el-upload class="avatar-uploader" v-loading="uploading" action="/api/upload/image" :headers="{Authorization:token}" :show-file-list="false" name="image"
+              :on-success="handleSuccess" :before-upload="beforeUpload">
               <img v-if="form.src" :src="getResizedImage(form.src)" style="width: 100%;" />
               <el-icon v-else class="avatar-uploader-icon">
                 <Plus />
@@ -58,7 +58,7 @@
 import { inject, ref, toRef, watchEffect , reactive} from 'vue';
 import type { ZimaTable } from '@/types/table.t';
 import type { Items } from './types.d'
-import { ElMessage } from 'element-plus'
+import * as imageConversion from 'image-conversion';
 import type { UploadProps } from 'element-plus'
 import type { FormRules } from 'element-plus'
 interface Props {
@@ -70,6 +70,7 @@ const token = localStorage.getItem('token')
 const table = inject("table") as ZimaTable<Items>
 const handleSubmit = inject("handleSubmit") as any
 const closeForm = inject("closeForm")
+const categoryList = inject("categoryList") as string[]
 
 const form = toRef(table.form, 'items')
 const formRef = ref()
@@ -82,26 +83,34 @@ const rules = reactive<FormRules<Items>>({
 
 watchEffect(()=>{
   if(table.form.operate == 'add'){
-    form.value.sort = table.data.length + 1
+    const lastItem = table.data[table.data.length - 1]
+    form.value.sort = lastItem.sort + 1
     form.value.type = props.type
   }
 })
 
-const categoryList = ['ZimaBoard','ZimaBlade','ZimaCube','Lifestyle','Application','Development']
-
-
-const handleAvatarSuccess: UploadProps['onSuccess'] = (
+const uploading = ref(false)
+const handleSuccess: UploadProps['onSuccess'] = (
   response,
 ) => {
+  uploading.value = false;
   form.value.src = "/api" + response.filePath
 }
 
-const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
-  if (rawFile.size / 1024 / 1024 > 5) {
-    ElMessage.error('图片大小不允许超过 5MB!')
-    return false
+const beforeUpload: UploadProps['beforeUpload'] = async (file: any) => {
+  uploading.value = true;
+  try {
+    // 调用 image-conversion 库进行图片压缩
+    const compressedFile = await imageConversion.compressAccurately(file, {
+      size: 1000, // 目标压缩大小，单位 KB
+    });
+    // 继续上传处理
+    return compressedFile;
+  } catch (error) {
+    uploading.value = false;
+    console.error('图片压缩失败', error);
+    return false;
   }
-  return true
 }
 
 const getResizedImage = (src:string)=>{
