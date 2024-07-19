@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="filter-wrapper flex justify-between">
-      <div class="left font20">
-        Docs
+      <div class="left flex" style="align-items: center;">
+        <h3 class="font20" style="margin-right: 20px;">Docs</h3> <span>当前环境：测试 <a :href="host" target="_blank">{{ host }}</a> </span>
       </div>
       <div class="right">
         <el-button type="primary" @click="handleAdd" icon="Plus"> 新增 </el-button>
@@ -36,8 +36,8 @@ import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import type { Items } from './types.d'
 
-// const host = "https://jeremyhann.github.io/"
-const host = "https://docs.zimaboard.com/"
+const host = "https://docs-test.zimaspace.com/"
+// const host = "https://docs.zimaboard.com/"
 
 const {
   table,
@@ -49,8 +49,8 @@ table.filter.type = 1
 
 onMounted(() => {
   getTableData((data) => {
-    table.data = data.list
-    table.total = data.list.length
+    table.data = data.list.filter((item:Items)=>item.fileKey !== 'placeholder')
+    table.total = table.data.length
     localStorage.setItem('docs_category',JSON.stringify(data.category))
   })
 })

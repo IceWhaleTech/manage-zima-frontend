@@ -8,7 +8,6 @@
         <el-button type="primary" @click="handleAdd" icon="Plus"> 新增 </el-button>
       </div>
     </div>
-    {{ table.loading }}
     <div class="table-wrapper" v-loading="table.loading">
       <el-empty v-if="table.data.length == 0"></el-empty>
       <el-row :gutter="20">

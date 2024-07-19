@@ -9,13 +9,15 @@
         <el-form-item label="目录标题" prop="title">
           <el-input v-model="form.title" />
         </el-form-item>
-        <el-form-item label="分类" prop="category">
+        <el-form-item label="分类" prop="category" >
           <el-cascader
             v-model="form.category"
+            :disabled="!canEditCatergory"
             :options="categoryList"
             :props="{expandTrigger: 'hover'}"
             style="width:100%"
           />
+          <p class="tip" style="margin-top: 10px;">该文章为当前主目录下的默认页，目录层级不允许修改！</p>
         </el-form-item>
       </el-form>
       <div v-loading="state.contentLoading">
@@ -38,7 +40,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref , reactive , onMounted} from "vue";
+import { ref , reactive , onMounted, computed} from "vue";
 import { MdEditor } from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import { useRoute, useRouter } from "vue-router";
@@ -75,8 +77,9 @@ const type = route.query.type;
 if (type == 'add') {
   form.content = `---
 title: 文章标题
+description:
 type: “Docs”
-tip: 顶部栏固定格式请勿删除
+tip: 顶部栏固定格式请勿删除,description为文章描述，不填时将截取内容最前一段文字
 ---
 # 段落标题`;
 }else{
@@ -90,7 +93,9 @@ tip: 顶部栏固定格式请勿删除
 }
 
 const editorRef = ref()
-
+const canEditCatergory = computed(()=>{
+  return form.fileName !== 'index'
+})
 var turndownService = new TurndownService()
 // var markdown = turndownService.turndown('<h1>Hello world!</h1>')
 onMounted(()=>{
