@@ -3,6 +3,11 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: {
+    'process.env': {
+      "OPENAI_API_KEY": ""
+    }
+  },
   plugins: [vue()],
   resolve: {
     alias: {
@@ -17,6 +22,7 @@ export default defineConfig({
         target: 'http://localhost:3102/', // 替换为你的目标 API
         // target: 'https://manage.icewhale.io', // 替换为你的目标 API
         // target: 'https://www.zimaspace.com', // 替换为你的目标 API
+        // target: 'https://www.youtube.com', // 替换为你的目标 API
         changeOrigin: true,
         // rewrite: (path) => path.replace(/^\/api/, '') // 去掉 /api 前缀
       }
