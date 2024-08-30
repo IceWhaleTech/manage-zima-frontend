@@ -40,7 +40,6 @@ const doLogin = ()=>{
     account:userInfo.account,
     password: userInfo.password,
   }).then((res:any)=>{
-    console.log(res)
     localStorage.setItem('token',res.token)
     router.push('/')
   })

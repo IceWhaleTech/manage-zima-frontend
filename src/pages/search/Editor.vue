@@ -8,7 +8,7 @@
       <el-form :model="form" label-width="auto" ref="ruleFormRef" :rules="rules" style="max-width: 600px">
         <el-form-item label="目录标题" prop="title">
           <el-input v-model="form.title" />
-          <!-- <el-button @click="translateTitle">GPT</el-button> -->
+          <el-button @click="translateTitle">GPT</el-button>
         </el-form-item>
         <el-form-item label="分类" prop="category" >
           <el-cascader

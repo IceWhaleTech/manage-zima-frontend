@@ -16,9 +16,11 @@
     "element-plus": "^2.7.3",
     "image-conversion": "^2.1.1",
     "md-editor-v3": "^4.16.7",
+    "openai": "^4.53.2",
     "turndown": "^7.2.0",
     "vue": "^3.4.21",
-    "vue-router": "^4.3.2"
+    "vue-router": "^4.3.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

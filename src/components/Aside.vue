@@ -15,6 +15,9 @@
         <el-menu-item index="/docs">
           <span>Docs</span>
         </el-menu-item>
+        <el-menu-item index="/search">
+          <span>Search</span>
+        </el-menu-item>
         <el-sub-menu index="1">
           <template #title>
             <!-- <el-icon><location /></el-icon> -->
