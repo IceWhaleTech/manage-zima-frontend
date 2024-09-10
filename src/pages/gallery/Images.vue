@@ -205,7 +205,7 @@ const onExceed = ()=>{
 }
 
 const onSuccess = (res: any) => {
-  const lastItem = table.data[table.data.length - 1]
+  const lastItem = table.data[table.data.length - 1] || { sort: 0 }
   uploadList.value.push({
     type: 1,
     category: batchForm.category,

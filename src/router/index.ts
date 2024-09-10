@@ -16,6 +16,7 @@ const routes = [
       { path: '/search', component: ()=> import("../pages/search/Index.vue")},
       { path: '/gallery/images', component: ()=> import("../pages/gallery/Images.vue")},
       { path: '/gallery/videos', component: ()=> import("../pages/gallery/Videos.vue")},
+      { path: '/feedback', component: ()=> import("../pages/feedback/Index.vue")},
     ],
   },
   {

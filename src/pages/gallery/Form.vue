@@ -83,7 +83,7 @@ const rules = reactive<FormRules<Items>>({
 
 watchEffect(()=>{
   if(table.form.operate == 'add'){
-    const lastItem = table.data[table.data.length - 1]
+    const lastItem = table.data[table.data.length - 1] || {sort: 0}
     form.value.sort = lastItem.sort + 1
     form.value.type = props.type
   }

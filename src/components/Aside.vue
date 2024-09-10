@@ -26,7 +26,9 @@
           <el-menu-item index="/gallery/images">图片管理</el-menu-item>
           <el-menu-item index="/gallery/videos">视频管理</el-menu-item>
         </el-sub-menu>
-       
+        <el-menu-item index="/feedback">
+          <span>站点反馈</span>
+        </el-menu-item>
       </el-menu>
 </div>
 </template>

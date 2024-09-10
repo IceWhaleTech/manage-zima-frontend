@@ -31,3 +31,7 @@
 .items-center{
   align-items: center;
 }
+/* element 默认样式覆盖 */
+.el-popper {
+  max-width: 60vw;
+}
