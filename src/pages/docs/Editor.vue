@@ -204,6 +204,7 @@ const onUploadImg = async (files:any, callback:(urlList:any)=>void) => {
   let blobList = await Promise.all(
     files.map((file:any)=>imageConversion.compressAccurately(file,size))
   )
+  console.log(blobList)
   const formdata = new FormData()
   formdata.append('path','/docs')
   blobList.map((blob:any,index:number)=>{

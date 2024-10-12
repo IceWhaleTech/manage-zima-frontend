@@ -18,6 +18,9 @@
         <el-menu-item index="/search">
           <span>Search</span>
         </el-menu-item>
+        <el-menu-item index="/share_ad">
+          <span>Share AD</span>
+        </el-menu-item>
         <el-sub-menu index="1">
           <template #title>
             <!-- <el-icon><location /></el-icon> -->
