@@ -35,6 +35,7 @@
       <p class="tip" style="margin-top: 10px;">旧有文章中的图片暂不支持预览，不影响正常功能！</p>
       <p class="tip" style="margin-top: 10px;">文章保存后需要约5min的编译时间，请在编译完成后查看！</p>
       <p class="tip" style="margin-top: 10px;">因编译需要时间，请勿频繁提交保存！</p>
+      <p class="tip" style="margin-top: 10px;">gif动图大小不要超过10M！</p>
     </div>
     <div>
     </div>
@@ -202,9 +203,15 @@ const onUploadImg = async (files:any, callback:(urlList:any)=>void) => {
   // 对文件先进行压缩
   const size = 400
   let blobList = await Promise.all(
-    files.map((file:any)=>imageConversion.compressAccurately(file,size))
-  )
-  console.log(blobList)
+    files.map((file:any)=>{
+      // 小于10M的gif不压缩
+      if(file.type.indexOf('gif')>=0 && file.size < 1024*1024*10){
+        return file
+      }else{
+        return imageConversion.compressAccurately(file,size)
+      }
+    }
+  ))
   const formdata = new FormData()
   formdata.append('path','/docs')
   blobList.map((blob:any,index:number)=>{
