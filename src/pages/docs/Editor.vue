@@ -22,7 +22,7 @@
         </el-form-item>
       </el-form>
       <div v-loading="state.contentLoading">
-        <MdEditor editorId="md-editor" ref="editorRef" v-model="form.content" @onUploadImg="onUploadImg" />
+        <MdEditor class="docs-editor" editorId="md-editor" ref="editorRef" v-model="form.content" @onUploadImg="onUploadImg" />
       </div>
       <el-button type="primary" :disabled="state.saveLoading" style="margin-top: 24px;" @click="handleSave(ruleFormRef)">
         <el-icon v-if="state.saveLoading" class="is-loading">
@@ -32,6 +32,8 @@
           {{ type == 'add' ? '发布' : '保存' }}
         </span>
       </el-button>
+      <p class="tip" style="margin-top: 10px;">请勿使用一级标题 h1 或 # （SEO优化）！</p>
+      <p class="tip" style="margin-top: 10px;">插入图片或链接后请在[]内添加相关描述（SEO优化）！</p>
       <p class="tip" style="margin-top: 10px;">旧有文章中的图片暂不支持预览，不影响正常功能！</p>
       <p class="tip" style="margin-top: 10px;">文章保存后需要约5min的编译时间，请在编译完成后查看！</p>
       <p class="tip" style="margin-top: 10px;">因编译需要时间，请勿频繁提交保存！</p>
@@ -74,17 +76,19 @@ const rules = {
 }
 
 const categoryList = JSON.parse(localStorage.getItem('docs_category')||'')
-
+const user = JSON.parse(localStorage.getItem('user')||"{}")
 const route = useRoute();
 const type = route.query.type;
 if (type == 'add') {
   form.content = `---
 title: 文章标题
 description: 
-type: "Docs"
+type: Docs
+author: ${user.name}
 tip: 顶部栏固定格式请勿删除,description为文章描述，不填时将截取内容最前一段文字
 ---
-# 段落标题`;
+## 段落标题
+内容部分`;
 }else{
   form.title = route.query.title as string
   form.title_origin = route.query.title as string
@@ -99,7 +103,9 @@ const editorRef = ref()
 const canEditCatergory = computed(()=>{
   return form.fileName !== 'index'
 })
-var turndownService = new TurndownService()
+var turndownService = new TurndownService({
+  headingStyle: 'atx',
+})
 // var markdown = turndownService.turndown('<h1>Hello world!</h1>')
 onMounted(()=>{
   if(type == 'edit') getFile(route.query.fileName+'.md')
@@ -112,12 +118,11 @@ const handlePaste = async(event: any) =>{
   const clipboardData = event.clipboardData || event.originalEvent.clipboardData;
   const htmlData = clipboardData.getData('text/html');
   const textData = clipboardData.getData('text/plain');
-  console.log(textData)
-  let newHtml = htmlData;
+  // 将复制的文章中的h1标签转换为h2标签
+  let newHtml = htmlData.replaceAll('<h1','<h2').replaceAll('</h1>','</h2>');
   if (htmlData && textData) {
       // 创建一个虚拟DOM来解析HTML
       event.preventDefault();
-      
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlData, 'text/html');
       const imgTags = doc.getElementsByTagName('img');
@@ -142,12 +147,16 @@ const handlePaste = async(event: any) =>{
 async function uploadImage(url:string) {
   // 通过图片链接获取图片blob
   const response = await fetch(url);
-  const blob = await response.blob();
+  const responseBlob = await response.blob();
+  const size = 400
+  let blob = await imageConversion.compressAccurately(responseBlob,size)
   let contentType = response.headers.get('Content-Type')
   let fileType = contentType?.split('/')[1]
+
   const formdata = new FormData()
   formdata.append('path','/docs')
   let file = new File([blob],'copyImage.'+fileType,{ type: fileType})
+
   formdata.append('file', file)
   // 上传图片
   let { data } = await request.post('/upload/batchImages',formdata)
@@ -253,6 +262,20 @@ const translateTitle = ()=>{
     color: #999;
     font-size: 12px;
 
+  }
+}
+</style>
+<style lang="scss">
+// 隐藏toolbar中的一级标题
+.docs-editor{
+  .md-editor-toolbar-wrapper .md-editor-toolbar{
+    .md-editor-dropdown-overlay ul.md-editor-menu{
+      li.md-editor-menu-item-title{
+        &:nth-child(1){
+          display: none;
+        }
+      }
+    }
   }
 }
 </style>
