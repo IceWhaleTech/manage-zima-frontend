@@ -10,7 +10,7 @@ const routes = [
       { path: '/docs', component: ()=> import("../pages/docs/Index.vue")},
       {
         path:'/docs/editor',
-        component: ()=> import("../pages/docs/Editor.vue"),
+        component: ()=> import("../pages/docs/EditorWrapper.vue"),
       },
       { path: '/event', component: ()=> import("../pages/event/Index.vue")},
       { path: '/search', component: ()=> import("../pages/search/Index.vue")},
