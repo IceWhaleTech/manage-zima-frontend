@@ -72,6 +72,7 @@ onMounted(() => {
     tableData.value = table.data
     table.total = table.data.length
     localStorage.setItem('docs_category',JSON.stringify(data.category))
+    localStorage.setItem('docs_lang_dict',JSON.stringify(data.langDict))
     options.value = data.category
   })
 })
@@ -101,10 +102,8 @@ const handleEdit = (item: any) => {
     path: '/docs/editor',
     query: {
       type: 'edit',
-      title: item.title,
       fileKey: item.fileKey,
       fileName: item.fileName.replace('.html',''),
-      category: item.category.join(','),
       categoryKey: item.categoryKey.join(','),
     }
   });

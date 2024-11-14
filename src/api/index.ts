@@ -47,7 +47,7 @@ request.interceptors.response.use(
         },2000)
         return Promise.reject(response.data);
         default:
-          ElMessage.error(response.data.message);
+          // ElMessage.error(response.data.message);
           return Promise.reject(response.data);
     }
 

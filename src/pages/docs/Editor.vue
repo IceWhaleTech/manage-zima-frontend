@@ -1,29 +1,35 @@
 <template>
   <div class="container">
+    <el-alert v-show="existAlertShow" title="当前文章不存在，将显示英文！" type="warning" />
     <div class="wrapper">
       <el-form :model="form" label-width="auto" ref="ruleFormRef" :rules="rules" style="max-width: 600px">
         <el-form-item label="目录标题" prop="title">
           <div class="flex" style="width: 100%;">
             <el-input v-model="form.title" style="flex:1"/>
-            <el-button type="primary" :disabled="!form.title"
-              v-if="lang != 'en'"
-              style="margin-left: 6px;"
-              @click="handleAi('translateTitle')">翻译标题</el-button>
+            <el-tooltip effect="dark" content="将英文标题翻译成当前语言" placement="bottom">
+              <el-button type="primary" :disabled="!form.title"
+                v-if="lang != 'en'"
+                style="margin-left: 6px;"
+                @click="handleAi('translateTitle')">翻译标题</el-button>
+            </el-tooltip>
           </div>
         </el-form-item>
         <el-form-item label="分类" prop="category">
           <el-cascader v-model="form.category" :disabled="!canEditCatergory || lang!='en'" :options="categoryList"
             :props="{ expandTrigger: 'hover' }" style="width:100%" />
-          <p class="tip" style="margin-top: 4px;">该文章为当前主目录下的默认页，目录层级不允许修改！</p>
+          <p class="tip" v-if="!canEditCatergory" style="margin-top: 4px;">该文章为当前主目录下的默认页，目录层级不允许修改！</p>
+          <p class="tip" v-if="lang==='en'" style="margin-top: 4px;">目录层级仅允许主目录内调整！</p>
         </el-form-item>
         <el-form-item label="Ai赋能">
           <el-tooltip effect="dark" content="总结文章并填充到description" placement="bottom">
             <el-button type="primary" size="small" :disabled="!form.content || form.content.length < 100"
               @click="handleAi('description')">总结文章</el-button>
           </el-tooltip>
-          <el-button type="primary" size="small" :disabled="!form.content || form.content.length < 100"
-            v-if="lang != 'en'"
-            @click="handleAi('translate')">翻译文章</el-button>
+          <el-tooltip effect="dark" content="以英文为基准将内容翻译成当前语言" placement="bottom">
+            <el-button type="primary" size="small" :disabled="!form.content || form.content.length < 100"
+              v-if="lang != 'en'"
+              @click="handleAi('translate')">翻译文章</el-button>
+          </el-tooltip>
         </el-form-item>
       </el-form>
       <div v-loading="state.contentLoading">
@@ -45,13 +51,30 @@
       <p class="tip" style="margin-top: 6px;">文章保存后需要约5min的编译时间，请在编译完成后查看！</p>
       <p class="tip" style="margin-top: 6px;">因编译需要时间，请勿频繁提交保存！</p>
       <p class="tip" style="margin-top: 6px;">gif动图大小不要超过10M！</p>
+      <p class="tip" style="margin-top: 6px;">如果展示有错误，可尝试重新保存，触发重新编译！</p>
     </div>
     <div>
     </div>
   </div>
+  <el-dialog v-model="dialogVisible" title="新增文章" width="500" :show-close="false">
+    <el-alert title="文件保存中，请勿关闭此页面！" type="error" :closable="false"  />
+    <div style="padding-left: 40px;padding-top: 20px;">
+      <el-steps direction="vertical" :active="dialogStep" space="50px" finish-status="success">
+        <el-step v-for="(item,index) in langList" 
+        :title="item.label + `(${item.value})`" 
+        >
+        <template #icon v-if="dialogStep === index">
+          <el-icon class="is-loading">
+            <Loading />
+          </el-icon>
+        </template>
+        </el-step>
+      </el-steps>
+    </div>
+  </el-dialog>
 </template>
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from "vue";
+import { ref, watch ,reactive, onMounted, computed } from "vue";
 import { MdEditor } from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import { useRoute, useRouter } from "vue-router";
@@ -61,15 +84,17 @@ import * as imageConversion from 'image-conversion';
 import type { FormInstance } from 'element-plus'
 import TurndownService from 'turndown'
 import { useAi } from '@/hooks/useAi'
+import { Loading } from "@element-plus/icons-vue";
 
 const props = defineProps<{
   lang: string
   langLabel: string
+  langList: Array<{ label: string, value: string}>
 }>()
 const langPath = computed(() => {
   return props.lang == 'en' ? '' : props.lang + '/'
 })
-
+const langDict = JSON.parse(localStorage.getItem('docs_lang_dict') || '{}')
 const state = reactive({
   contentLoading: false,
   saveLoading: false,
@@ -89,12 +114,16 @@ const rules = {
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
   category: [{ required: true, message: '请选择分类', trigger: 'change' }]
 }
-
-const categoryList = JSON.parse(localStorage.getItem('docs_category') || '')
+const existAlertShow = ref(false)
 const user = JSON.parse(localStorage.getItem('user') || "{}")
 const route = useRoute();
-const type = route.query.type;
-if (type == 'add') {
+const type = ref('') 
+type.value = route.query.type as string
+
+watch(()=>route.query,()=>{
+  type.value = route.query.type as string || 'add'
+})
+if (type.value == 'add') {
   form.content = `---
 title: 文章标题
 description: 
@@ -105,15 +134,16 @@ tip: 顶部栏固定格式请勿删除,description为文章描述，不填时将
 ## 段落标题
 内容部分`;
 } else {
-  form.title = route.query.title as string
-  form.title_origin = route.query.title as string
+  form.fileKey = route.query.fileKey as string
+  form.fileName = route.query.fileName as string
   let category = route.query.categoryKey as any
   form.category = category.split(',')
   form.category_origin = category.split(',')
-  form.fileKey = route.query.fileKey as string
-  form.fileName = route.query.fileName as string
+  let title = getLangText('sidebar.'+form.category[0]+'.'+form.fileKey)
+  form.title = title
+  form.title_origin = title
 }
-
+const categoryList = computed(()=>getCategroyList())
 const editorRef = ref()
 const canEditCatergory = computed(() => {
   return form.fileName !== 'index'
@@ -123,10 +153,26 @@ var turndownService = new TurndownService({
 })
 // var markdown = turndownService.turndown('<h1>Hello world!</h1>')
 onMounted(() => {
-  if (type == 'edit') getFile(route.query.fileName + '.md')
+  getLangDict()
+  if (type.value == 'edit') getFile(route.query.fileName + '.md')
   let editor = document.getElementById('md-editor-'+props.lang) as any
   editor.addEventListener('paste', handlePaste)
 })
+
+function getCategroyList() {
+  let list = JSON.parse(localStorage.getItem('docs_category') || '')
+  // if(props.lang === 'en') return list
+  list.forEach((item:any) => {
+    item.label = getLangText('menu.' + item.value)
+    if (type.value === 'edit'){
+      item.disabled = item.value !== form.category[0]
+    }
+    item.children.forEach((it: any) => {
+      it.label = props.lang === 'en'? it.label : getLangText('sidebar.'+form.category[0] + '.' + it.value)
+    });
+  });
+  return list
+}
 
 const handlePaste = async (event: any) => {
   state.contentLoading = true
@@ -181,10 +227,27 @@ async function uploadImage(url: string) {
 
 const getFile = (fileName: string) => {
   state.contentLoading = true
-
   request.get(`/docs/doc/${fileName}?path=${langPath.value + form.category[0]}`).then(res => {
     form.content = res.data.content
     form.sha = res.data.sha
+    if(props.lang === 'en'){
+      localStorage.setItem('docs_file_en', JSON.stringify({
+        title: form.title,
+        content: form.content,
+        sha: form.sha
+      }))
+    }
+  }).catch((err:any)=>{
+    if(err.status == 404){
+      ElMessage.error('文件不存在,将显示英文内容！')
+      existAlertShow.value = true
+      let file = JSON.parse(localStorage.getItem('docs_file_en') || '{}')
+      form.title = file.title
+      form.title_origin = ''
+      form.content = file.content
+    }else{
+      ElMessage.error(err.message)
+    }
   }).finally(() => {
     state.contentLoading = false
   })
@@ -203,28 +266,85 @@ const handleSave = async (formEl: FormInstance | undefined) => {
 
 const router = useRouter()
 
+const dialogVisible = ref(false)
+const dialogStep = ref(1)
+
 const confirmSave = () => {
   state.saveLoading = true
-  if (type == 'add') {
+  if (type.value == 'add') {
     form.fileName = form.title.replace(/\s/g, '-')
     form.fileKey = form.fileName.toLowerCase()
+    dialogVisible.value = true
+    dialogStep.value = 0
   }
-  console.log(form)
-  return
   request.post('/docs/save', {
-    type,
-    langPath: langPath.value,
+    type:type.value,
+    lang: props.lang,
     ...form
-  }).then(() => {
-    window.setTimeout(() => {
+  }).then(async() => {
+    if( type.value === 'add' && props.lang === 'en'){
+      dialogStep.value = 1
+      handleBatchSave()
+    }else{
       ElMessage.success('保存成功！')
-      router.push('/docs')
-    }, 2000)
+    }
+    state.saveLoading = false
   }).catch((err: any) => {
     ElMessage.error(err.message)
   }).finally(() => {
     state.saveLoading = false
   })
+}
+
+const handleBatchSave = async()=>{
+  let file_en = JSON.parse(localStorage.getItem('docs_file_en') || '{}')
+  let langList = props.langList
+  for (let i = 0; i < langList.length; i++) {
+    let lang = langList[i]
+    let file = {
+      type:'edit',
+      lang:lang.value,
+      title:'' as string | null,
+      title_origin: '',
+      fileKey: form.fileKey,
+      category: form.category,
+      category_origin: form.category,
+      content: '' as string | null,
+      sha: undefined,
+      fileName: form.fileName,
+    }
+    if(lang.value!=='en'){
+      file.title = await runAi({
+        system: `将标题翻译成${lang.label}`,
+        user: file_en.title
+      })
+      file.content = await runAi({
+        system: `将后面的内容翻译成${lang.label}并保留原有格式`,
+        user: file_en.content
+      })
+      await request.post('/docs/save',file)
+      console.log('保存成功！',file)
+      dialogStep.value += 1
+    }
+  }
+  // 语言循环保存结束
+  await getLangDict()
+  dialogVisible.value = false
+  router.push({
+    path: '/docs/editor',
+    query: {
+      type: 'edit',
+      fileKey: form.fileKey,
+      fileName: form.fileName,
+      categoryKey: form.category.join(','),
+    }
+  });
+  ElMessage.success('保存成功！')
+}
+
+const getLangDict = async()=>{
+  let { data } = await request.get('/docs/langDict')
+  localStorage.setItem('docs_lang_dict', JSON.stringify(data.langDict))
 }
 
 const onUploadImg = async (files: any, callback: (urlList: any) => void) => {
@@ -257,18 +377,20 @@ const { runAi } = useAi()
 
 
 const handleAi = (type: string) => {
+  let file_en = JSON.parse(localStorage.getItem('docs_file_en') || '{}')
   if (type == 'description') {
     confirmAi(`对后面的文章给我100字以内的总结以帮助seo,用${props.langLabel}回复`, form.content ,(response:string) => {
       form.content = form.content.replace(/description:.*\n/, 'description: ' + response + '\n')
     })
   }
   if (type == 'translate') {
-    confirmAi(`将后面的内容翻译成${props.langLabel}并保留原有格式`, form.content ,(response:string) => {
+    confirmAi(`将后面的内容翻译成${props.langLabel}并保留原有格式`, file_en.content ,(response:string) => {
       form.content = response
+      existAlertShow.value = false
     })
   }
   if (type == 'translateTitle') {
-    confirmAi(`根据文章内容，将${form.title}翻译成${props.langLabel}`,form.content, (response:string) => {
+    confirmAi(`将标题翻译成${props.langLabel}`,file_en.title, (response:string) => {
       form.title = response
     })
   }
@@ -311,6 +433,13 @@ const confirmAi = (text:string,extraText:string,callback:any)=>{
     }).catch()
 }
 
+
+function getLangText (key:string){
+  return getObjectValueByPath(langDict[props.lang]['content'],key) || key
+}
+function getObjectValueByPath(obj:any, path:string) {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+}
 </script>
 <style lang="scss" scoped>
 .container {
