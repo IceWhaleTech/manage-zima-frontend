@@ -284,6 +284,11 @@ const confirmSave = () => {
   }).then(async() => {
     if( type.value === 'add' && props.lang === 'en'){
       dialogStep.value = 1
+      localStorage.setItem('docs_file_en', JSON.stringify({
+        title: form.title,
+        content: form.content,
+        sha: form.sha
+      }))
       handleBatchSave()
     }else{
       ElMessage.success('保存成功！')
